@@ -1,0 +1,20 @@
+- Daemon that runs  in the background on startup
+- Spins infinitely
+- Run one program (service.c) at the start, and that starts up the server
+- Other processes can start up (client), and that’ll connect them to the server
+- Separate database file
+- When the client connects, it’ll open the file
+    - Implementing Flisk
+- For this, you'll implement a trusted UNIX daemon that provides services to the rest of the system. Does the Daemon need to run in a specific operating system?
+- inetd, init
+- Different file descriptors for different permissions
+- When they connect, we give them the file descriptor to the database
+- Goal:
+    - Set up the client server so that a user can connect to the server
+    - Passing the file descriptor back to the client
+    - On the same device, pass back to the client
+    - Input sql query and read or write to the database
+        - Insert SQL Query
+    - Default read-write permissions. Once basic and tests are successful, then we can increment progress
+- Additional Goals:
+    - If time permits, try with multiple clients on different machines.  

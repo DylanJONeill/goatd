@@ -24,6 +24,9 @@ Additional Notes:
     - Set up the client server so that a user can connect to the server
     - Passing the file descriptor back to the client
     - On the same device, pass back to the client
+    - Ask SQL to open N different databases using a file descriptor.
+        - Need to check to make sure that this is possible in SQLite.
+        - If not possible, have server run SQL queries and write to a file, then provide users the output to that file via a file descriptor. 
     - Input sql query and read or write to the database
         - Insert SQL Query
     - Default read-write permissions. Once basic and tests are successful, then we can increment progress

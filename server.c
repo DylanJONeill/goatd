@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 void
 unlink_domain_socket(int status, void *filename)
@@ -47,8 +48,17 @@ server(int num_clients, char *filename)
         printf("Server received message (sz %d): \"%s\". Replying!\n", amnt, buf);
         fflush(stdout);
 
+        // Open file to send
+        int fd = open("query_results.txt", O_RDONLY);
+        if (fd == -1) {
+            perror("open");
+            exit(EXIT_FAILURE);
+        }
+
         /* send the client a reply */
-        if (write(new_client, buf, amnt) < 0) exit(EXIT_FAILURE);
+        // if (write(new_client, buf, amnt) < 0) exit(EXIT_FAILURE);
+        send_fd(new_client, fd);
+        printf("Received file descriptor: %d\n", fd);
         /* Done with communication with this client */
         close(new_client);
     }

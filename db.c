@@ -11,7 +11,7 @@ static int callback(void *data, int argc, char **argv, char **azColName)
     {
         fprintf(output_file, "%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
     }
-    fprintf(output_file, "\n");
+    //fprintf(output_file, "\n");
     return 0;
 }
 

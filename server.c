@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <poll.h>
 
 void
 unlink_domain_socket(int status, void *filename)
@@ -14,33 +15,64 @@ unlink_domain_socket(int status, void *filename)
 }
 
 #define MAX_BUF_SZ 128
+#define MAX_FDS 16
 
 void
 server(int num_clients, char *filename)
 {
     char buf[MAX_BUF_SZ];
+    struct pollfd poll_fds[MAX_FDS];
     int new_client, amnt, i, socket_desc;
 
     socket_desc = domain_socket_server_create(filename);
-    if (socket_desc < 0) exit(EXIT_FAILURE); /* should do proper cleanup */
+    int num_fds = 0;
+
+    /* should do proper cleanup */
+    if (socket_desc < 0){
+        exit(EXIT_FAILURE); 
+    } 
     on_exit(unlink_domain_socket, strdup(filename));
 
-    /*
-     * Service `num_clients` number of clients, one at a time.F
-     * For many servers, this might be an infinite loop.
-     */
+    
+    memset(poll_fds, 0, sizeof(struct pollfd) * MAX_FDS);
+
+    //the service is itself is a file descriptor, so add to the table of fds
+    poll_fds[num_fds++] = (struct pollfd) {
+        .fd     = socket_desc,
+        .events = POLLIN,
+    };
 
     printf("SQL Server Starting!\n");
     for (;;) {
-        /*
-         * We use this new descriptor to communicate with *this* client.
-         * This is the key function that enables us to create per-client
-         * descriptors. It only returns when a client is ready to communicate.
-         */
-        if ((new_client = accept(socket_desc, NULL, NULL)) == -1) exit(EXIT_FAILURE);
+
+        printf("Polling...\n");
+        int ret = poll(poll_fds, num_fds, -1);
+        if (ret == -1) exit(EXIT_FAILURE);
+
+
+        printf("Polled something\n");
+    
+        
+        //accept a new client
+        if (poll_fds[0].revents & POLLIN) {
+
+            if ((new_client = accept(socket_desc, NULL, NULL)) == -1){
+                exit(EXIT_FAILURE);
+            }
+
+            //add it to the polling list
+            poll_fds[num_fds++] = (struct pollfd) {
+                .fd = new_client,
+                .events = POLLIN
+            };
+            poll_fds[0].revents = 0;
+        }
+
+        //successful connection
         printf("Server: New client connected with new file descriptor %d.\n", new_client);
         fflush(stdout);
 
+        //read the message
         amnt = read(new_client, buf, MAX_BUF_SZ - 1);
         if (amnt == -1) exit(EXIT_FAILURE);
         buf[amnt] = '\0'; /* ensure null termination of the string */

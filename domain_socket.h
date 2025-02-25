@@ -126,7 +126,6 @@ int server_request_pid(int domain_socket) {
 }
 
 int send_pid(int domain_socket) {
-    printf("pid to write: %d\n", getpid());
     pid_t client_pid = getpid();
     char pid_buf[64];
     sprintf(pid_buf, "%d", client_pid);
@@ -137,7 +136,7 @@ int send_pid(int domain_socket) {
     for (;;) {
         read(domain_socket, pid_request_buf, strlen(PID_REQUEST));
         if (strcmp(pid_request_buf, PID_REQUEST) == 0) { //If we get the PID request, write out pid
-            write(domain_socket, pid_buf, sizeof(pid_t));
+            write(domain_socket, pid_buf, strlen(pid_buf));
             break;
         }
     } //Sent the pid, wait for server to acknowledge it

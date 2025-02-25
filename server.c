@@ -34,7 +34,7 @@ server(int num_clients, char *filename)
     } 
     on_exit(unlink_domain_socket, strdup(filename));
 
-    
+    //init the poll fds
     memset(poll_fds, 0, sizeof(struct pollfd) * MAX_FDS);
 
     //the service is itself is a file descriptor, so add to the table of fds
@@ -67,18 +67,22 @@ server(int num_clients, char *filename)
                 .events = POLLIN
             };
             poll_fds[0].revents = 0;
+
+            //successful connection
+            printf("Server: New client connected with new file descriptor %d.\n", new_client);
+            fflush(stdout);
         }
 
-        //successful connection
-        printf("Server: New client connected with new file descriptor %d.\n", new_client);
-        fflush(stdout);
+    
 
         //read the message
+        /*
         amnt = read(new_client, buf, MAX_BUF_SZ - 1);
         if (amnt == -1) exit(EXIT_FAILURE);
-        buf[amnt] = '\0'; /* ensure null termination of the string */
+        buf[amnt] = '\0'; 
         printf("Server received message (sz %d): \"%s\". Replying!\n", amnt, buf);
         fflush(stdout);
+        */
 
         // Open file to send
         int fd = open("query_results.txt", O_RDONLY);

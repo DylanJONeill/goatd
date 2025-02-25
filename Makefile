@@ -16,3 +16,7 @@ clean:
 	rm -f db_server
 	rm -f db
 
+install:
+	sudo apt-get install libsqlite3-dev
+	sudo apt install sqlite3
+

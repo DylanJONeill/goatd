@@ -25,6 +25,13 @@ void client(char *filename)
     // successful connection
     printf("User%d connected to server.\n", getpid());
     fflush(stdout);
+    
+    //Send our PID to the server so it can set up its client struct
+    if (send_pid(socket_desc) < 0) {
+        close(socket_desc); //Error condition, we want to break the connection
+        exit(EXIT_FAILURE);
+    }
+    fflush(stdout);
 
     snprintf(msg, MAX_BUF_SZ - 1, "yo what's up");
     amnt = write(socket_desc, msg, strlen(msg) + 1);

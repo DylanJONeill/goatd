@@ -1,5 +1,8 @@
 #include "domain_socket.h"
 
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <errno.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -7,6 +10,8 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <signal.h>
+#include <stdbool.h>
 
 void
 unlink_domain_socket(int status, void *filename)
@@ -17,6 +22,13 @@ unlink_domain_socket(int status, void *filename)
 
 #define MAX_BUF_SZ 128
 #define MAX_FDS 16
+
+
+void sigint_handler(int sig){
+    // Perform cleanup or other actions before exiting
+    exit(0); // Exit the program
+
+}
 
 void
 server(int num_clients, char *filename)
@@ -111,6 +123,12 @@ main(void)
     char *channel_name = "db_server";
     int nclients = 2;
     int i;
+
+    // Signal Cleanup Handling
+    if (signal(SIGINT, sigint_handler) == SIG_ERR) {
+        perror("signal");
+        return 1;
+    }
 
     //start the
     if (fork() == 0){

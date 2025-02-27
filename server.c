@@ -56,7 +56,7 @@ server(int num_clients, char *filename)
         printf("Polling...\n");
         int ret = poll(poll_fds, num_fds, -1);
         if (ret == -1) exit(EXIT_FAILURE);
-        printf("ret: %d\n", ret);
+        //printf("ret: %d\n", ret);
         printf("Polled something\n");
         
         //accept a new client
@@ -79,7 +79,7 @@ server(int num_clients, char *filename)
                 }
             }
             //Client set up complete, now we can do our work
-            printf("Client setup complete\n");
+            //printf("Client setup complete\n");
             fflush(stdout);
 
             //add it to the polling list

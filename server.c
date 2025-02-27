@@ -56,7 +56,7 @@ server(int num_clients, char *filename)
         printf("Polling...\n");
         int ret = poll(poll_fds, num_fds, -1);
         if (ret == -1) exit(EXIT_FAILURE);
-
+        printf("ret: %d\n", ret);
         printf("Polled something\n");
         
         //accept a new client
@@ -69,6 +69,7 @@ server(int num_clients, char *filename)
             //Set up our client struct in an available index
             for (int j = 0; j < MAX_CLIENTS; ++j) {
                 if (client_list[j].pid == -5) {
+                    //printf("j = %d\n", j);
                     client_list[j].domain_socket = new_client; //Sets our FD to the socket FD
                     fflush(stdout);
                     client_list[j].pid = rec_pid(new_client, buf, MAX_BUF_SZ - 1); //Get the PID from the client
@@ -122,7 +123,7 @@ server(int num_clients, char *filename)
             }
         }
         //Client removed from active client list
-        //close(new_client);
+        close(new_client);
     }
     close(socket_desc);
 

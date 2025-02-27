@@ -153,12 +153,12 @@ int send_pid(int domain_socket) {
 }
 
 int rec_pid(int domain_socket, char* buf, size_t buf_size) {
-    printf("domain socket rec_pid: %d\n", domain_socket);
+    //printf("domain socket in rec_pid: %d\n", domain_socket);
     if (server_request_pid(domain_socket) <=0) {
         close(domain_socket); //Error condition, we want to break connection
         exit(EXIT_FAILURE);
     }
-    printf("post server_request_pid rec_pid\n");
+    
     fflush(stdout);
 
     if (read(domain_socket, buf, buf_size) <= 0) {

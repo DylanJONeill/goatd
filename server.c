@@ -52,17 +52,6 @@ server(int num_clients, char *filename)
 
     printf("SQL Server Starting!\n");
     for (;;) {
-        //Set up our client struct in an available index
-        for (int j = 0; j < MAX_CLIENTS; ++j) {
-            if (client_list[j].pid == -5) {
-                client_list[j].domain_socket = new_client; //Sets our FD to the socket FD
-                fflush(stdout);
-                client_list[j].pid = rec_pid(new_client, buf, MAX_BUF_SZ - 1); //Get the PID from the client
-            }
-        }
-        //Client set up complete, now we can do our work
-        printf("Client setup complete\n");
-        fflush(stdout);
 
         printf("Polling...\n");
         int ret = poll(poll_fds, num_fds, -1);
@@ -76,6 +65,21 @@ server(int num_clients, char *filename)
             if ((new_client = accept(socket_desc, NULL, NULL)) == -1){
                 exit(EXIT_FAILURE);
             }
+
+            //Set up our client struct in an available index
+            for (int j = 0; j < MAX_CLIENTS; ++j) {
+                if (client_list[j].pid == -5) {
+                    client_list[j].domain_socket = new_client; //Sets our FD to the socket FD
+                    fflush(stdout);
+                    client_list[j].pid = rec_pid(new_client, buf, MAX_BUF_SZ - 1); //Get the PID from the client
+                    break; //Move on, we've already got a spot for the new client
+                } else if (j == MAX_CLIENTS - 1) { //No client spots available, kill the client connection
+                    close(new_client);
+                }
+            }
+            //Client set up complete, now we can do our work
+            printf("Client setup complete\n");
+            fflush(stdout);
 
             //add it to the polling list
             poll_fds[num_fds++] = (struct pollfd) {
@@ -118,7 +122,7 @@ server(int num_clients, char *filename)
             }
         }
         //Client removed from active client list
-        close(new_client);
+        //close(new_client);
     }
     close(socket_desc);
 

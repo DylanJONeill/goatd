@@ -39,7 +39,8 @@ void server(int num_clients, char *filename)
     int new_client, amnt, i, socket_desc;
     struct client client_list[MAX_CLIENTS];
 
-    for (int j = 0; j < MAX_CLIENTS; ++j) {
+    for (int j = 0; j < MAX_CLIENTS; ++j)
+    {
         client_list[j].domain_socket = -5;
         client_list[j].pid = -5;
     }
@@ -83,36 +84,24 @@ void server(int num_clients, char *filename)
                 exit(EXIT_FAILURE);
             }
 
-            //Set up our client struct in an available index
-            for (int j = 0; j < MAX_CLIENTS; ++j) {
-                if (client_list[j].pid == -5) {
-                    //printf("j = %d\n", j);
-                    client_list[j].domain_socket = new_client; //Sets our FD to the socket FD
+            // Set up our client struct in an available index
+            for (int j = 0; j < MAX_CLIENTS; ++j)
+            {
+                if (client_list[j].pid == -5)
+                {
+                    printf("j = %d\n", j);
+                    client_list[j].domain_socket = new_client; // Sets our FD to the socket FD
                     fflush(stdout);
-                    client_list[j].pid = rec_pid(new_client, buf, MAX_BUF_SZ - 1); //Get the PID from the client
-                    break; //Move on, we've already got a spot for the new client
-                } else if (j == MAX_CLIENTS - 1) { //No client spots available, kill the client connection
+                    client_list[j].pid = rec_pid(new_client, buf, MAX_BUF_SZ - 1); // Get the PID from the client
+                    break;                                                         // Move on, we've already got a spot for the new client
+                }
+                else if (j == MAX_CLIENTS - 1)
+                { // No client spots available, kill the client connection
                     close(new_client);
                 }
             }
-            //Client set up complete, now we can do our work
-            //printf("Client setup complete\n");
-            fflush(stdout);
-
-            //Set up our client struct in an available index
-            for (int j = 0; j < MAX_CLIENTS; ++j) {
-                if (client_list[j].pid == -5) {
-                    //printf("j = %d\n", j);
-                    client_list[j].domain_socket = new_client; //Sets our FD to the socket FD
-                    fflush(stdout);
-                    client_list[j].pid = rec_pid(new_client, buf, MAX_BUF_SZ - 1); //Get the PID from the client
-                    break; //Move on, we've already got a spot for the new client
-                } else if (j == MAX_CLIENTS - 1) { //No client spots available, kill the client connection
-                    close(new_client);
-                }
-            }
-            //Client set up complete, now we can do our work
-            //printf("Client setup complete\n");
+            // Client set up complete, now we can do our work
+            printf("Client setup complete\n");
             fflush(stdout);
 
             // add it to the polling list
@@ -127,7 +116,8 @@ void server(int num_clients, char *filename)
         }
 
         // Event loop that handles when new clients are connected
-        for(i = 1; i < num_fds; i++){
+        for (i = 1; i < num_fds; i++)
+        {
             // Open file to send back to client
             int fd = open("query_results.txt", O_RDONLY);
             if (fd == -1)
@@ -136,30 +126,31 @@ void server(int num_clients, char *filename)
                 exit(EXIT_FAILURE);
             }
 
-        /* send the client a reply */
-        // if (write(new_client, buf, amnt) < 0) exit(EXIT_FAILURE);
-        send_fd(new_client, fd);
-        printf("Received file descriptor: %d\n", fd);
-        /* Done with communication with this client */
-        //Now we need to remove the client from our active client list
-        for (int j = 0; j < MAX_CLIENTS; ++j) {
-            if (client_list[j].domain_socket == new_client) {
-                client_list[j].pid = -5; //Set slot open for new clients
-                client_list[j].domain_socket = -5;
-            }
-        }
-        //Client removed from active client list
-        close(new_client);
-            // send the client a reply 
+            /* send the client a reply */
+            // if (write(new_client, buf, amnt) < 0) exit(EXIT_FAILURE);
             send_fd(new_client, fd);
-            
+            printf("Received file descriptor: %d\n", fd);
+            /* Done with communication with this client */
+            // Now we need to remove the client from our active client list
+            for (int j = 0; j < MAX_CLIENTS; ++j)
+            {
+                if (client_list[j].domain_socket == new_client)
+                {
+                    client_list[j].pid = -5; // Set slot open for new clients
+                    client_list[j].domain_socket = -5;
+                }
+            }
+            // Client removed from active client list
+            close(new_client);
+            // send the client a reply
+            send_fd(new_client, fd);
+
             // Now we close the client connection descriptor
             printf("server: closing client connection %d\n", poll_fds[i].fd);
             close(poll_fds[i].fd);
             poll_fds[i] = poll_fds[num_fds - 1];
             num_fds--;
             i--;
-
         }
     }
     close(socket_desc);

@@ -6,8 +6,6 @@ all:
 
 write: 
 	gcc -o db db.c -lsqlite3
-	# ./db 
-	# rm -f db
 
 clean:
 	@echo "Cleaning up..."

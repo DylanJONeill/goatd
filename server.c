@@ -118,26 +118,41 @@ void server(int num_clients, char *filename)
         // Event loop that handles when new clients are connected
         for (i = 1; i < num_fds; i++)
         {
-            // Open file to send back to client
-            int fd = open("query_results.txt", O_RDONLY);
-            if (fd == -1)
-            {
-                perror("open");
-                exit(EXIT_FAILURE);
-            }
-
-            /* send the client a reply */
-            // if (write(new_client, buf, amnt) < 0) exit(EXIT_FAILURE);
-            send_fd(new_client, fd);
-            printf("Received file descriptor: %d\n", fd);
             /* Done with communication with this client */
             // Now we need to remove the client from our active client list
             for (int j = 0; j < MAX_CLIENTS; ++j)
             {
                 if (client_list[j].domain_socket == new_client)
                 {
+                    if (client_list[j].pid % 2 == 0)
+                    {
+                        // Open file to send back to client
+                        printf("Opening private queries...\n");
+                        int fd = open("query_results_private.txt", O_RDONLY);
+                        if (fd == -1)
+                        {
+                            perror("open");
+                            exit(EXIT_FAILURE);
+                        }
+                        send_fd(new_client, fd);
+                        close(fd);
+                    }
+                    else
+                    {
+                        // Open file to send back to client
+                        printf("Opening public queries...\n");
+                        int fd = open("query_results_public.txt", O_RDONLY);
+                        if (fd == -1)
+                        {
+                            perror("open");
+                            exit(EXIT_FAILURE);
+                        }
+                        send_fd(new_client, fd);
+                        close(fd);
+                    }
                     client_list[j].pid = -5; // Set slot open for new clients
                     client_list[j].domain_socket = -5;
+                    break;
                 }
             }
             // Client removed from active client list

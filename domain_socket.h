@@ -13,6 +13,14 @@
 #include <string.h>
 #define MAX_BUF_SZ 128
 
+#define PID_REQUEST "WRITE PID TO DESCRIPTOR"
+#define PID_ACKNOWLEDGE "SERVER RECEIVED PID"
+
+struct client {
+    int pid;
+    int domain_socket;
+};
+
 int
 domain_socket_client_create(const char *file_name)
 {
@@ -112,3 +120,59 @@ int recv_fd(int socket){
     return fd;
 }
 
+int server_request_pid(int domain_socket) {
+    char* pid_write_request = PID_REQUEST;
+    return write(domain_socket, pid_write_request, strlen(pid_write_request));
+}
+
+int send_pid(int domain_socket) {
+    pid_t client_pid = getpid();
+    char pid_buf[64];
+    sprintf(pid_buf, "%d", client_pid);
+    //printf("pid_buf: %s\n", pid_buf);
+    char pid_request_buf[strlen(PID_REQUEST)];
+    char pid_acknowledge_buf[strlen(PID_ACKNOWLEDGE)];
+    //printf("client_pid: %ls\n", &client_pid);
+    for (;;) {
+        read(domain_socket, pid_request_buf, strlen(PID_REQUEST));
+        if (strcmp(pid_request_buf, PID_REQUEST) == 0) { //If we get the PID request, write out pid
+            write(domain_socket, pid_buf, strlen(pid_buf));
+            break;
+        }
+    } //Sent the pid, wait for server to acknowledge it
+    //printf("PID sent\n");
+    for (;;) {
+        read(domain_socket, pid_acknowledge_buf, strlen(PID_ACKNOWLEDGE));
+        if (strcmp(pid_acknowledge_buf, PID_ACKNOWLEDGE) == 0) { //If we get the PID acknowledge, continue
+            break;
+        }
+    }
+    //printf("PID acknowledged\n");
+
+    return 0;
+}
+
+int rec_pid(int domain_socket, char* buf, size_t buf_size) {
+    //printf("domain socket in rec_pid: %d\n", domain_socket);
+    if (server_request_pid(domain_socket) <=0) {
+        close(domain_socket); //Error condition, we want to break connection
+        exit(EXIT_FAILURE);
+    }
+    
+    fflush(stdout);
+
+    if (read(domain_socket, buf, buf_size) <= 0) {
+        close(domain_socket); //Error condition, we want to break connection
+        exit(EXIT_FAILURE);
+    }
+
+    long pid = strtol(buf, &buf, 10);
+    //printf("received pid: %ld\n", pid);
+    //Let client know we've received their PID
+    if (write(domain_socket, PID_ACKNOWLEDGE, strlen(PID_ACKNOWLEDGE)) <= 0) {
+        close(domain_socket); //Error condition, we want to break connection
+        exit(EXIT_FAILURE);
+    }
+
+    return (int)pid;
+}

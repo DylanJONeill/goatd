@@ -142,8 +142,6 @@ void server(int num_clients, char *filename)
             }
             // Client removed from active client list
             close(new_client);
-            // send the client a reply
-            send_fd(new_client, fd);
 
             // Now we close the client connection descriptor
             printf("server: closing client connection %d\n", poll_fds[i].fd);

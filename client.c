@@ -66,8 +66,10 @@ void client(char *filename)
             ssize_t bytes_read = read(fd, buffer, sizeof(buffer) - 1);
             if (bytes_read > 0)
             {
+                printf("//START OF DATA//\n");
                 buffer[bytes_read] = '\0';
                 printf("%s", buffer); // Print new data immediately
+                printf("//END OF DATA//\n\n");
                 fflush(stdout);
             }
         }

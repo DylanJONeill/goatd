@@ -44,7 +44,6 @@ void client(char *filename)
     //  Receive file descriptor
     int fd = recv_fd(socket_desc);
     printf("Received file descriptor: %d\n", fd);
-    printf("User%d reply received from server: %s\n", getpid(), msg);
     fflush(stdout);
 
     // Set non-blocking mode so we can keep reading even if no new data arrives

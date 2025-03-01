@@ -129,10 +129,10 @@ int send_pid(int domain_socket) {
     pid_t client_pid = getpid();
     char pid_buf[64];
     sprintf(pid_buf, "%d", client_pid);
-    //printf("pid_buf: %s\n", pid_buf);
+    printf("pid_buf: %s\n", pid_buf);
     char pid_request_buf[strlen(PID_REQUEST)];
     char pid_acknowledge_buf[strlen(PID_ACKNOWLEDGE)];
-    //printf("client_pid: %ls\n", &client_pid);
+    printf("client_pid: %ls\n", &client_pid);
     for (;;) {
         read(domain_socket, pid_request_buf, strlen(PID_REQUEST));
         if (strcmp(pid_request_buf, PID_REQUEST) == 0) { //If we get the PID request, write out pid
@@ -140,14 +140,14 @@ int send_pid(int domain_socket) {
             break;
         }
     } //Sent the pid, wait for server to acknowledge it
-    //printf("PID sent\n");
+    printf("PID sent\n");
     for (;;) {
         read(domain_socket, pid_acknowledge_buf, strlen(PID_ACKNOWLEDGE));
         if (strcmp(pid_acknowledge_buf, PID_ACKNOWLEDGE) == 0) { //If we get the PID acknowledge, continue
             break;
         }
     }
-    //printf("PID acknowledged\n");
+    printf("PID acknowledged\n");
 
     return 0;
 }

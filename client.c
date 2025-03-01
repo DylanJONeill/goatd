@@ -9,9 +9,7 @@
 #include <fcntl.h>
 #include <poll.h>
 
-
 #define BUFFER_SIZE 256
-
 
 void client(char *filename)
 {
@@ -25,10 +23,11 @@ void client(char *filename)
     // successful connection
     printf("User%d connected to server.\n", getpid());
     fflush(stdout);
-    
-    //Send our PID to the server so it can set up its client struct
-    if (send_pid(socket_desc) < 0) {
-        close(socket_desc); //Error condition, we want to break the connection
+
+    // Send our PID to the server so it can set up its client struct
+    if (send_pid(socket_desc) < 0)
+    {
+        close(socket_desc); // Error condition, we want to break the connection
         exit(EXIT_FAILURE);
     }
     fflush(stdout);
@@ -67,8 +66,10 @@ void client(char *filename)
             ssize_t bytes_read = read(fd, buffer, sizeof(buffer) - 1);
             if (bytes_read > 0)
             {
+                printf("//START OF DATA//\n");
                 buffer[bytes_read] = '\0';
                 printf("%s", buffer); // Print new data immediately
+                printf("//END OF DATA//\n\n");
                 fflush(stdout);
             }
         }
@@ -83,7 +84,7 @@ void client(char *filename)
 int main(void)
 {
     char *channel_name = "db_server";
-    int nclients = 2;
+    int nclients = 1;
     int i;
 
     /* wait for the server to create the domain socket */
@@ -94,8 +95,7 @@ int main(void)
             client(channel_name);
     }
     /* wait for all of the children */
-    while (wait(NULL) != -1)
-        ;
+    while (wait(NULL) != -1);
 
     return 0;
 }

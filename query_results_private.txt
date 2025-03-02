@@ -1,18 +1,5 @@
-id = 1
-name = Faris
-age = 20
-id = 2
-name = Dylan
-age = 21
-id = 3
-name = Derek
-age = 20
-id = 1
-name = Faris
-age = 20
-id = 2
-name = Dylan
-age = 21
-id = 3
-name = Derek
-age = 20
+# SQL Query Results - Private
+Query from client 381242: wow
+
+Query from client 381242: this is cool
+

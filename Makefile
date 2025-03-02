@@ -7,6 +7,10 @@ all:
 write: 
 	gcc -o db db.c -lsqlite3
 
+new: 
+	gcc -o client new_client.c
+	gcc -o server new_server.c
+
 clean:
 	@echo "Cleaning up..."
 	rm -f client 

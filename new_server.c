@@ -285,7 +285,6 @@ int main(void)
         server(channel_name);
     }
 
-    while (wait(NULL) != -1)
-        ;
+    while (wait(NULL) != -1);
     return 0;
 }

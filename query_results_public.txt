@@ -1,4 +1,0 @@
-# SQL Query Results - Public
-Hello
-
-This is a fun time

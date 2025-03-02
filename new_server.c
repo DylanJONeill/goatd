@@ -12,6 +12,7 @@
 #include <poll.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <sqlite3.h>
 
 #define MAX_BUF_SZ 128
 #define MAX_CLIENTS 8
@@ -41,6 +42,19 @@ void sigint_handler(int sig)
     exit(0);
 }
 
+// Callback function to print results of the SELECT query
+static int callback(void *data, int argc, char **argv, char **azColName)
+{
+    FILE *output_file = (FILE *)data;
+
+    for (int i = 0; i < argc; i++)
+    {
+        fprintf(output_file, "%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+    // fprintf(output_file, "\n");
+    return 0;
+}
+
 void server(char *filename)
 {
     char buf[MAX_BUF_SZ];
@@ -64,16 +78,11 @@ void server(char *filename)
     poll_fds[num_fds++] = (struct pollfd){.fd = socket_desc, .events = POLLIN};
 
     // Make sure the query result files exist
-    FILE *public_file = fopen("query_results_public.txt", "w");
-    if (public_file) {
-        fprintf(public_file, "# SQL Query Results - Public\n");
+    FILE *public_file = fopen("query_results.txt", "w");
+    if (public_file)
+    {
+        fprintf(public_file, "# SQL Query Results\n");
         fclose(public_file);
-    }
-    
-    FILE *private_file = fopen("query_results_private.txt", "w");
-    if (private_file) {
-        fprintf(private_file, "# SQL Query Results - Private\n");
-        fclose(private_file);
     }
 
     printf("SQL Server Starting!\n");
@@ -94,26 +103,25 @@ void server(char *filename)
                 exit(EXIT_FAILURE);
 
             int client_pid = rec_pid(new_client, buf, MAX_BUF_SZ - 1);
-            
+
             // Read client type (READER or WRITER)
             memset(type_buf, 0, MAX_BUF_SZ);
-            if (read(new_client, type_buf, MAX_BUF_SZ - 1) <= 0) {
+            if (read(new_client, type_buf, MAX_BUF_SZ - 1) <= 0)
+            {
                 perror("read client type");
                 close(new_client);
                 continue;
             }
-            
+
             ClientType client_type = (strcmp(type_buf, "WRITER") == 0) ? WRITER : READER;
-            printf("New client connected: PID %d, Type: %s\n", 
-                  client_pid, client_type == WRITER ? "WRITER" : "READER");
-            
+            printf("New client connected: PID %d, Type: %s\n",
+                   client_pid, client_type == WRITER ? "WRITER" : "READER");
+
             // Handle READER clients immediately
             if (client_type == READER)
             {
-                const char *file_to_open = (client_pid % 2 == 0) ? 
-                                          "query_results_private.txt" : 
-                                          "query_results_public.txt";
-                
+                const char *file_to_open = "query_results.txt";
+
                 printf("READER client: sending %s file descriptor\n", file_to_open);
                 int fd = open(file_to_open, O_RDONLY);
                 if (fd != -1)
@@ -121,15 +129,16 @@ void server(char *filename)
                     send_fd(new_client, fd);
                     close(fd);
                 }
-                else {
+                else
+                {
                     perror("open file for reader");
                 }
-                
+
                 // No need to keep connection with readers
                 close(new_client);
                 continue;
             }
-            
+
             // For WRITER clients, store in our client list
             int client_slot = -1;
             for (int j = 0; j < MAX_CLIENTS; ++j)
@@ -143,8 +152,9 @@ void server(char *filename)
                     break;
                 }
             }
-            
-            if (client_slot == -1) {
+
+            if (client_slot == -1)
+            {
                 // No slots available
                 printf("No client slots available, closing connection\n");
                 close(new_client);
@@ -163,7 +173,7 @@ void server(char *filename)
             {
                 int client_fd = poll_fds[i].fd;
                 char query[MAX_BUF_SZ];
-                
+
                 ssize_t bytes_read = read(client_fd, query, MAX_BUF_SZ - 1);
                 if (bytes_read <= 0)
                 {
@@ -172,7 +182,7 @@ void server(char *filename)
                         printf("Client disconnected\n");
                     else
                         perror("read from client");
-                    
+
                     // Remove client from list
                     for (int j = 0; j < MAX_CLIENTS; ++j)
                     {
@@ -183,7 +193,7 @@ void server(char *filename)
                             break;
                         }
                     }
-                    
+
                     // Close the socket and remove from poll set
                     close(client_fd);
                     poll_fds[i] = poll_fds[num_fds - 1];
@@ -191,11 +201,11 @@ void server(char *filename)
                     i--;
                     continue;
                 }
-                
+
                 // Process query from writer
                 query[bytes_read] = '\0';
                 printf("Received query: %s\n", query);
-                
+
                 // Identify which client sent this query
                 int client_idx = -1;
                 for (int j = 0; j < MAX_CLIENTS; ++j)
@@ -206,22 +216,47 @@ void server(char *filename)
                         break;
                     }
                 }
-                
-                if (client_idx == -1) {
+
+                if (client_idx == -1)
+                {
                     fprintf(stderr, "Could not find client data for fd %d\n", client_fd);
                     continue;
                 }
-                
+
                 // Write query to appropriate file based on client PID
-                const char *file_to_update = (client_list[client_idx].pid % 2 == 0) ? 
-                                           "query_results_private.txt" : 
-                                           "query_results_public.txt";
-                
+                const char *file_to_update = "query_results.txt";
+
                 FILE *fp = fopen(file_to_update, "a");
                 if (fp)
                 {
-                    fprintf(fp, "Query from client %d: %s\n", 
-                            client_list[client_idx].pid, query);
+                    fprintf(fp, "Query from client %d: %s\n", client_list[client_idx].pid, query);
+
+                    // The file is open, let's make the query now
+                    // Open the database to prepare to write to it
+                    sqlite3 *db;
+                    char *zErrMsg = 0;
+                    int rc = sqlite3_open("test.db", &db);
+                    if (rc)
+                    {
+                        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+                    }
+                    else
+                    {
+                        fprintf(stderr, "Opened database successfully\n");
+                    }
+                    rc = sqlite3_exec(db, query, callback, (void *)fp, &zErrMsg);
+                    if (rc != SQLITE_OK)
+                    {
+                        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+                        sqlite3_free(zErrMsg);
+                    }
+                    else
+                    {
+                        fprintf(stderr, "Query executed successfully, results written to file\n");
+                    }
+
+                    sqlite3_close(db);
+
                     fclose(fp);
                     printf("Query appended to %s\n", file_to_update);
                 }
@@ -238,7 +273,7 @@ void server(char *filename)
 int main(void)
 {
     char *channel_name = "db_server";
-    
+
     if (signal(SIGINT, sigint_handler) == SIG_ERR)
     {
         perror("signal");
@@ -250,6 +285,7 @@ int main(void)
         server(channel_name);
     }
 
-    while (wait(NULL) != -1);
+    while (wait(NULL) != -1)
+        ;
     return 0;
 }

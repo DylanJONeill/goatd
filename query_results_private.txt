@@ -1,5 +1,0 @@
-# SQL Query Results - Private
-Query from client 381242: wow
-
-Query from client 381242: this is cool
-

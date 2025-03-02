@@ -1,7 +1,7 @@
 all:
 	@echo "Building the project..."
-	gcc -o client new_client.c
-	gcc -o server new_server.c -lsqlite3
+	gcc -o client client.c
+	gcc -o server server.c -lsqlite3
 	
 clean:
 	@echo "Cleaning up..."

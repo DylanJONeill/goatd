@@ -26,19 +26,18 @@ int main()
     FILE *public_output_file, *private_output_file;
     int min = 1, max = 100;
 
+    // Open the SQLite database
+    rc = sqlite3_open("test.db", &db);
+    if (rc)
+    {
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        return 0;
+    }
+     //fprintf(stderr, "Opened database successfully\n");
+    
+
     while (1)
     {
-        // Open the SQLite database
-        rc = sqlite3_open("test.db", &db);
-        if (rc)
-        {
-            fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-            return 0;
-        }
-        else
-        {
-            fprintf(stderr, "Opened database successfully\n");
-        }
 
         if (((rand() % (max - min + 1)) + min)% 2 == 0)
         {
@@ -61,7 +60,8 @@ int main()
             }
             else
             {
-                fprintf(stderr, "Query executed successfully, results written to file\n");
+                
+                //fprintf(stderr, "Query executed successfully, results written to file\n");
             }
             fclose(private_output_file);
         }
@@ -86,16 +86,18 @@ int main()
             }
             else
             {
-                fprintf(stderr, "Query executed successfully, results written to file\n");
+                //fprintf(stderr, "Query executed successfully, results written to file\n");
             }
             fclose(public_output_file);
         }
 
-        // Close database and output file
-        sqlite3_close(db);
+
 
         sleep(5);
     }
+
+    // Close database and output file
+    sqlite3_close(db);
 
     return 0;
 }

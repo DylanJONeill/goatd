@@ -32,12 +32,14 @@ void client(char *filename)
     }
     fflush(stdout);
 
+    /*
     snprintf(msg, MAX_BUF_SZ - 1, "yo what's up");
     amnt = write(socket_desc, msg, strlen(msg) + 1);
     if (amnt < 0)
         exit(EXIT_FAILURE);
     printf("Message Sent!\n");
     fflush(stdout);
+    */
 
     // if (read(socket_desc, msg, amnt) < 0) exit(EXIT_FAILURE);
     // msg[amnt] = '\0';
@@ -65,10 +67,10 @@ void client(char *filename)
             ssize_t bytes_read = read(fd, buffer, sizeof(buffer) - 1);
             if (bytes_read > 0)
             {
-                printf("//START OF DATA//\n");
+                printf("\n----START OF DATA----\n");
                 buffer[bytes_read] = '\0';
-                printf("%s", buffer); // Print new data immediately
-                printf("//END OF DATA//\n\n");
+                printf("%s\n", buffer); // Print new data immediately
+                printf("\n----END OF DATA----\n");
                 fflush(stdout);
             }
         }

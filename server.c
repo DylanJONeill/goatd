@@ -68,12 +68,12 @@ void server(int num_clients, char *filename)
     for (;;)
     {
 
-        printf("Polling...\n");
+        printf("Awaiting connections...\n");
         int ret = poll(poll_fds, num_fds, -1);
         if (ret == -1)
             exit(EXIT_FAILURE);
 
-        printf("Polled something\n");
+
 
         // accept a new client
         if (poll_fds[0].revents & POLLIN)
@@ -89,7 +89,6 @@ void server(int num_clients, char *filename)
             {
                 if (client_list[j].pid == -5)
                 {
-                    printf("j = %d\n", j);
                     client_list[j].domain_socket = new_client; // Sets our FD to the socket FD
                     fflush(stdout);
                     client_list[j].pid = rec_pid(new_client, buf, MAX_BUF_SZ - 1); // Get the PID from the client
@@ -111,7 +110,7 @@ void server(int num_clients, char *filename)
             poll_fds[0].revents = 0;
 
             // successful connection
-            printf("Server: New client connected with new file descriptor %d.\n", new_client);
+            printf("New client connected");
             fflush(stdout);
         }
 
@@ -191,8 +190,7 @@ int main(void)
     /* wait for the server to create the domain socket */
 
     /* wait for all of the children */
-    while (wait(NULL) != -1)
-        ;
+    while (wait(NULL) != -1);
 
     return 0;
 }

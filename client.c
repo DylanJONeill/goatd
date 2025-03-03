@@ -11,44 +11,87 @@
 
 #define BUFFER_SIZE 256
 
-void client(char *filename)
+typedef enum { READER, WRITER } ClientType;
+
+void writer_client(char *filename)
 {
-    char msg[MAX_BUF_SZ];
-    int amnt = 0, socket_desc;
+    char query[BUFFER_SIZE];
+    int socket_desc;
 
     socket_desc = domain_socket_client_create(filename);
     if (socket_desc < 0)
         exit(EXIT_FAILURE);
-
-    // successful connection
-    printf("User%d connected to server.\n", getpid());
+    
+    printf("Writer client (PID %d) connected.\n", getpid());
     fflush(stdout);
 
-    // Send our PID to the server so it can set up its client struct
+    // Send our PID to the server
     if (send_pid(socket_desc) < 0)
     {
-        close(socket_desc); // Error condition, we want to break the connection
+        close(socket_desc);
         exit(EXIT_FAILURE);
     }
-    fflush(stdout);
-
-    /*
-    snprintf(msg, MAX_BUF_SZ - 1, "yo what's up");
-    amnt = write(socket_desc, msg, strlen(msg) + 1);
-    if (amnt < 0)
+    
+    // Send client type to server
+    const char *type_str = "WRITER";
+    if (write(socket_desc, type_str, strlen(type_str) + 1) < 0)
+    {
+        perror("write client type");
+        close(socket_desc);
         exit(EXIT_FAILURE);
-    printf("Message Sent!\n");
-    fflush(stdout);
-    */
+    }
 
-    // if (read(socket_desc, msg, amnt) < 0) exit(EXIT_FAILURE);
-    // msg[amnt] = '\0';
-    //  Receive file descriptor
+    printf("SQL Writer ready. Enter queries below:\n");
+    while (1)
+    {
+        printf("SQL> ");
+        fflush(stdout);
+        if (fgets(query, BUFFER_SIZE, stdin) == NULL)
+            break; // Exit if input error
+        
+        if (write(socket_desc, query, strlen(query) + 1) < 0)
+        {
+            perror("write query");
+            break;
+        }
+    }
+    
+    close(socket_desc);
+    exit(EXIT_SUCCESS);
+}
+
+void reader_client(char *filename)
+{
+    char buffer[BUFFER_SIZE];
+    int socket_desc = domain_socket_client_create(filename);
+    if (socket_desc < 0)
+        exit(EXIT_FAILURE);
+
+    printf("Reader client (PID %d) connected.\n", getpid());
+    fflush(stdout);
+
+    // Send our PID to the server
+    if (send_pid(socket_desc) < 0)
+    {
+        close(socket_desc);
+        exit(EXIT_FAILURE);
+    }
+    
+    // Send client type to server
+    const char *type_str = "READER";
+    if (write(socket_desc, type_str, strlen(type_str) + 1) < 0)
+    {
+        perror("write client type");
+        close(socket_desc);
+        exit(EXIT_FAILURE);
+    }
+
+    // Receive file descriptor
     int fd = recv_fd(socket_desc);
     printf("Received file descriptor: %d\n", fd);
     fflush(stdout);
 
-    // Set non-blocking mode so we can keep reading even if no new data arrives
+    // Set non-blocking mode
     int flags = fcntl(fd, F_GETFL, 0);
     fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
@@ -58,7 +101,6 @@ void client(char *filename)
 
     printf("Listening for updates...\n");
 
-    char buffer[BUFFER_SIZE];
     while (1)
     {
         int ready = poll(&pfd, 1, -1); // Wait indefinitely for data
@@ -78,23 +120,40 @@ void client(char *filename)
 
     close(fd);
     close(socket_desc);
-
     exit(EXIT_SUCCESS);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    if (argc != 2)
+    {
+        fprintf(stderr, "Usage: %s <reader|writer>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
     char *channel_name = "db_server";
-    int nclients = 1;
-    int i;
+    ClientType type;
+
+    if (strcmp(argv[1], "writer") == 0)
+        type = WRITER;
+    else if (strcmp(argv[1], "reader") == 0)
+        type = READER;
+    else {
+        fprintf(stderr, "Invalid client type. Use 'reader' or 'writer'\n");
+        return EXIT_FAILURE;
+    }
 
     /* wait for the server to create the domain socket */
     sleep(1);
-    for (i = 0; i < nclients; i++)
+    
+    if (fork() == 0)
     {
-        if (fork() == 0)
-            client(channel_name);
+        if (type == WRITER)
+            writer_client(channel_name);
+        else
+            reader_client(channel_name);
     }
+    
     /* wait for all of the children */
     while (wait(NULL) != -1);
 

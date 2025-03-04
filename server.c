@@ -117,6 +117,7 @@ void server(char *filename)
             ClientType client_type = (strcmp(type_buf, "WRITER") == 0) ? WRITER : READER;
             printf("New client connected: PID %d, Type: %s\n",
                    client_pid, client_type == WRITER ? "WRITER" : "READER");
+            fflush(stdout);
 
             // Handle READER clients immediately
             if (client_type == READER)
@@ -124,6 +125,7 @@ void server(char *filename)
                 const char *file_to_open = "query_results.txt";
 
                 printf("READER client: sending %s file descriptor\n", file_to_open);
+                fflush(stdout);
                 int fd = open(file_to_open, O_RDONLY);
                 if (fd != -1)
                 {

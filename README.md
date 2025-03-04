@@ -15,3 +15,16 @@ Steps to run:
 5. Run as many clients using: `./client`
 
 This will ensure that the server creates the domain socket that the clients can communicate with it from, and receive the file descriptor to the respective results file.
+
+# Documentation
+
+
+## Who Did What
+- Derek: Setting up the Domain Socket, Accepting Clients, Polling, Testing
+- Dylan: Client Validation, Testing
+- Faris: Passing File Descriptors, SQLite to Text File, Testing
+
+
+## Test Case Documentation
+- `domain_socket_test.sh` - This tests that a domain socket is created with a known path
+- 

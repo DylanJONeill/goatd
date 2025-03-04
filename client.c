@@ -109,10 +109,10 @@ void reader_client(char *filename)
             ssize_t bytes_read = read(fd, buffer, sizeof(buffer) - 1);
             if (bytes_read > 0)
             {
-                printf("//START OF DATA//\n");
+                printf("\n----START OF DATA----\n");
                 buffer[bytes_read] = '\0';
-                printf("%s", buffer);
-                printf("//END OF DATA//\n\n");
+                printf("%s\n", buffer); // Print new data immediately
+                printf("\n----END OF DATA----\n");
                 fflush(stdout);
             }
         }

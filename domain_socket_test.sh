@@ -10,10 +10,10 @@ make
 sleep 2
 
 
-#check if a socket was create
+#check if a socket was created
 ls | grep db_server >> lvl1.txt
 
-
+#assert
 if diff lvl1.txt lvl1_test.txt; then
     echo "Level 1 Passed"
 else
@@ -21,6 +21,7 @@ else
 fi
 
 rm -rf lvl1.txt
+
 
 
 

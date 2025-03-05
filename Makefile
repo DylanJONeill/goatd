@@ -8,6 +8,7 @@ clean:
 	rm -f client 
 	rm -f server
 	rm -f db_server
+	rm -f query_results.txt
 
 install:
 	sudo apt-get install libsqlite3-dev

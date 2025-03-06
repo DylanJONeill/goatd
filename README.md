@@ -27,7 +27,10 @@ This will ensure that the server creates the domain socket that the clients can 
 
 If you would like to plug in your own database and test it for yourself, ensure that you have the SQLite 3 command tool, with more details to install in the Installation section. 
 
+# Implementation
+Running `./server` starts a SQL server that serve incoming client connections. Using `send_pid` and `rec_pid`, clients can send their process ID and the server can validate it on their end. A client can connect as a writer or reader (cannot connect as both). If the client connects as a writer, they can send SQL query messages to the server, where the server will communicate with the database and retrieve select statements. If a client connects as a reader, they are returned a file descriptor to a text file, which serves as a live feed to the database. Whenever a writer writes to the database, it is updated to the log, where all the readers can see the current state of the database. 
 
+A sample situtation that you can run is starting the server using `./server`. In one shell window connects as a reader using `./client reader` and in another window connect as a writer `./client writer`. In the writer window, input `select * from users` and view the reader window to see the select statement.
 
 
 
@@ -41,4 +44,4 @@ If you would like to plug in your own database and test it for yourself, ensure 
 ## Test Case Documentation
 - `domain_socket_test.sh` - This tests that a domain socket is created with a known path
 - `write_read_test.sh` - Test to ensure that the writers and readers are working as expected and output queries from a sample table. 
-- `mutliple_clients_test.sh` - Test to ensure that multiple clients (readers and writers) can connect to the server via the domain socket
+- `mutliple_clients_test.sh` - Test to ensure that multiple clients (readers and writers) can connect to the server via the domain socket 

@@ -44,4 +44,6 @@ A sample situtation that you can run is starting the server using `./server`. In
 ## Test Case Documentation
 - `domain_socket_test.sh` - This tests that a domain socket is created with a known path
 - `write_read_test.sh` - Test to ensure that the writers and readers are working as expected and output queries from a sample table. 
-- `mutliple_clients_test.sh` - Test to ensure that multiple clients (readers and writers) can connect to the server via the domain socket 
+- `multiple_clients_test.sh` - Test to ensure that multiple clients (readers and writers) can connect to the server via the domain socket
+- `client_list_test.sh` - Test to ensure client list holds capacity to MAX_CLIENTS
+

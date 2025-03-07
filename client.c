@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
 #include <sys/un.h>
 #include <fcntl.h>
 #include <poll.h>

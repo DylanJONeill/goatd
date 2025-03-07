@@ -5,6 +5,7 @@
         "*.dbclient-js": "javascript",
         "wait.h": "c",
         "string.h": "c",
-        "sqlite3.h": "c"
+        "sqlite3.h": "c",
+        "unistd.h": "c"
     }
 }

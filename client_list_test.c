@@ -33,8 +33,8 @@ int main() {
     char *channel_name = "db_server";
     //Make server instance before running test
   
-    for(int i = 0; i < 8; i++){
-        make_writer(); //Makes 8 writers, should fill up client list
+    for(int i = 0; i < MAX_CLIENTS; i++){
+        make_writer(); //Makes MAX_CLIENTS writers, should fill up client list
         //printf("Writer %d connected\n", i);
     }
 

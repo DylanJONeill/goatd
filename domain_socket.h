@@ -15,6 +15,7 @@
 
 #define PID_REQUEST "WRITE PID TO DESCRIPTOR"
 #define PID_ACKNOWLEDGE "SERVER RECEIVED PID"
+#define MAX_CLIENTS 8
 
 struct client {
     int pid;

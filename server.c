@@ -15,7 +15,6 @@
 #include <sqlite3.h>
 
 #define MAX_BUF_SZ 128
-#define MAX_CLIENTS 8
 #define MAX_FDS 16
 
 typedef enum
